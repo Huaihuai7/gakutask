@@ -92,3 +92,32 @@ function sortedTasks() {
  
   sub.after(box); // サブタイトルの、すぐ下に入れる
 })();
+
+// ▼ 学習記録（タスクとは別の箱に保存する）
+let logs = JSON.parse(localStorage.getItem("logs")) || [];
+ 
+function saveLogs() {
+  localStorage.setItem("logs", JSON.stringify(logs));
+}
+ 
+// Date を「2026-11-21」の形の文字にする
+function dateKey(d) {
+  return d.getFullYear() + "-" +
+    String(d.getMonth() + 1).padStart(2, "0") + "-" +
+    String(d.getDate()).padStart(2, "0");
+}
+ 
+// 直近7日間の学習時間（分）の合計
+function weekMinutes() {
+  const from = new Date();
+  from.setDate(from.getDate() - 6);
+  const key = dateKey(from);
+  return logs
+    .filter(function (l) { return l.date >= key; })
+    .reduce(function (sum, l) { return sum + l.min; }, 0);
+}
+ 
+// 125 → 「2時間5分」
+function fmtMin(m) {
+  return Math.floor(m / 60) + "時間" + (m % 60) + "分";
+}

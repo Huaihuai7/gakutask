@@ -449,3 +449,12 @@ li.done span { text-decoration: line-through; }
     left: calc(50% + 100px);
   }
 }
+
+/* ▼ 集計カードを、4つ並べても崩れないようにする */
+.summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+}
+ 
+/* ▼ 学習時間の「分」の入力欄 */
+.options input[type="number"] { width: 90px; }

@@ -14,8 +14,24 @@
     <div><small>総タスク</small><b id="sumTotal">0</b></div>
     <div><small>完了</small><b id="sumDone">0</b></div>
     <div><small>進捗率</small><b id="sumRate">0%</b></div>
+    <div><small>今週の学習時間</small><b id="sumTime">0時間0分</b></div>
   </div>
  
+   <h2>学習時間を記録</h2>
+  <div class="options">
+    <select id="logCat">
+      <option>Java</option>
+      <option>HTML・CSS</option>
+      <option>PHP</option>
+      <option>SQL</option>
+      <option>その他</option>
+    </select>
+    <input id="logMin" type="number" min="1" placeholder="分">
+    <button id="logBtn">記録</button>
+  </div>
+  <p id="logMsg" class="set-msg" role="status"></p>
+
+
   <h2>科目別の達成度</h2>
   <div id="catBars"></div>
  

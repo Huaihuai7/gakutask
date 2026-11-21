@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>設定｜学タスク</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>学タスク</h1>
+  <p>学び・仕事を積み重ねよう</p>
+ 
+  <!-- ▼ 名前 -->
+  <div class="set-card">
+    <h2>名前</h2>
+    <div class="set-row">
+      <input id="nameInput" placeholder="ニックネーム">
+      <button id="nameSaveBtn">保存</button>
+    </div>
+  </div>
+ 
+  <!-- ▼ バックアップ -->
+  <div class="set-card">
+    <h2>バックアップ</h2>
+    <p class="set-note">タスクとメモを、ファイルに書き出せます。別のパソコンに移すときにも使えます。</p>
+    <div class="set-row">
+      <button id="exportBtn" class="btn-sub">書き出す</button>
+      <label class="btn-sub file-btn">
+        読み込む
+        <input id="importFile" type="file" accept=".json,application/json" hidden>
+      </label>
+    </div>
+  </div>
+ 
+  <!-- ▼ データの削除 -->
+  <div class="set-card">
+
+    <!-- ▼ カレンダーに登録（通知付き） -->
+  <div class="set-card">
+    <h2>カレンダーに登録</h2>
+    <p class="set-note">期限のある未完了のタスクを、カレンダーのファイル（.ics）に書き出します。スマホのカレンダーに読み込むと、前日の9時と当日の9時に、通知が来ます。</p>
+    <button id="icsBtn" class="btn-sub">カレンダーのファイルを書き出す</button>
+  </div>
+  
+    <h2>データの削除</h2>
+    <p class="set-note">削除すると、元に戻せません。先にバックアップをおすすめします。</p>
+    <div class="set-row wrap">
+      <button id="clearTasksBtn" class="btn-danger">タスクを全部削除</button>
+      <button id="clearMemosBtn" class="btn-danger">メモを全部削除</button>
+      <button id="clearAllBtn" class="btn-danger">すべて削除</button>
+    </div>
+  </div>
+ 
+  <p id="msg" class="set-msg" role="status"></p>
+ 
+  <nav class="tabbar">
+    <a href="index.html" class="tab">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>
+      </svg>
+      <span>ホーム</span>
+    </a>
+    <a href="tasks.html" class="tab">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M9 6h11M9 12h11M9 18h11"/>
+        <path d="m3.5 6 1.2 1.2L7 4.8M3.5 12l1.2 1.2L7 10.8M3.5 18l1.2 1.2L7 16.8"/>
+      </svg>
+      <span>タスク</span>
+    </a>
+    <a href="calendar.html" class="tab">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M7 3v4M17 3v4M4 9h16"/>
+        <path d="M5 5h14a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/>
+      </svg>
+      <span>カレンダー</span>
+    </a>
+    <a href="memo.html" class="tab">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8z"/>
+        <path d="M14 3v5h5M9 13h6M9 17h4"/>
+      </svg>
+      <span>メモ</span>
+    </a>
+    <a href="stats.html" class="tab">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M5 20v-8M12 20V5M19 20v-5M3 20h18"/>
+      </svg>
+      <span>統計</span>
+    </a>
+    <a href="settings.html" class="tab on">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1"/>
+        <circle cx="15" cy="6" r="2"/>
+        <circle cx="9" cy="12" r="2"/>
+        <circle cx="17" cy="18" r="2"/>
+      </svg>
+      <span>設定</span>
+    </a>
+  </nav>
+ 
+  <script src="common.js"></script>
+  <script src="settings.js"></script>
+</body>
+</html>

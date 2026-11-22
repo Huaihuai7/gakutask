@@ -5,9 +5,18 @@ const list = document.getElementById("taskList");
 const dueInput = document.getElementById("dueInput");
 const priorityInput = document.getElementById("priorityInput");
 const catInput = document.getElementById("catInput");
+const categoryInput = document.getElementById("categoryInput"); // ★追加
 const undoBar = document.getElementById("undoBar");
 const undoBtn = document.getElementById("undoBtn");
 const undoClose = document.getElementById("undoClose");
+ 
+// ★追加：カテゴリの選択肢を、CATEGORIES から作る
+CATEGORIES.forEach(function (name) {
+  const opt = document.createElement("option");
+  opt.value = name;
+  opt.textContent = name;
+  categoryInput.appendChild(opt);
+});
  
 // ▼ 直前に削除したタスクを、覚えておく
 let lastDeleted = null;
@@ -35,10 +44,11 @@ function render() {
     const title = document.createElement("span");
     title.textContent = task.text;
  
-    // 科目・優先度・期限（小さい文字）
+    // カテゴリ・科目・優先度・期限（小さい文字）
     const meta = document.createElement("small");
     meta.textContent =
-      (task.cat || "その他") +
+      (task.category || "未設定") +                  // ★追加：カテゴリ（古いタスクは「未設定」）
+      "・" + (task.cat || "その他") +
       "・優先度：" + (task.priority || "中") +
       (task.due ? "・期限 " + task.due : "");
  
@@ -76,7 +86,8 @@ button.addEventListener("click", function () {
     done: false,
     due: dueInput.value,
     priority: priorityInput.value,
-    cat: catInput.value
+    cat: catInput.value,
+    category: categoryInput.value                     // ★追加：カテゴリを保存
   });
   save();
   render();

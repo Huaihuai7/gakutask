@@ -121,3 +121,6 @@ function weekMinutes() {
 function fmtMin(m) {
   return Math.floor(m / 60) + "時間" + (m % 60) + "分";
 }
+
+// ▼ タスクのカテゴリ一覧（企画書で決めた6つ）
+const CATEGORIES = ["授業", "課題", "資格", "仕事", "自己研鑽", "就活"];

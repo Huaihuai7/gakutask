@@ -6,11 +6,45 @@ const importFile = document.getElementById("importFile");
 const clearTasksBtn = document.getElementById("clearTasksBtn");
 const clearMemosBtn = document.getElementById("clearMemosBtn");
 const clearAllBtn = document.getElementById("clearAllBtn");
+const icsBtn = document.getElementById("icsBtn");
 const msg = document.getElementById("msg");
+const dataSummary = document.getElementById("dataSummary"); // ★追加
+const lastExport = document.getElementById("lastExport");   // ★追加
  
 // ▼ 画面の下に、結果のメッセージを出す
 function showMsg(text) {
   msg.textContent = text;
+}
+ 
+// ★追加：いま保存されているデータの件数を、表示する
+function renderSummary() {
+  const done = tasks.filter(function (t) { return t.done; }).length;
+  const totalMin = logs.reduce(function (sum, l) { return sum + (l.min || 0); }, 0);
+ 
+  const cards = [
+    ["タスク", tasks.length + " 件", "完了 " + done + "／未完了 " + (tasks.length - done)],
+    ["メモ", memos.length + " 件", ""],
+    ["学習記録", logs.length + " 件", "合計 " + fmtMin(totalMin)]
+  ];
+ 
+  dataSummary.innerHTML = ""; // いったん空にする
+  cards.forEach(function (c) {
+    const box = document.createElement("div");
+    const label = document.createElement("small");
+    label.textContent = c[0];
+    const count = document.createElement("b");
+    count.textContent = c[1];
+    const note = document.createElement("small");
+    note.textContent = c[2];
+    box.append(label, count, note);
+    dataSummary.appendChild(box);
+  });
+ 
+  // 最後に書き出した日時
+  const last = localStorage.getItem("lastExport");
+  lastExport.textContent = last
+    ? "最後に書き出した日時：" + new Date(last).toLocaleString("ja-JP")
+    : "まだ書き出していません。";
 }
  
 // ▼ 保存済みの名前を、入力欄に入れる
@@ -22,11 +56,26 @@ nameSaveBtn.addEventListener("click", function () {
   showMsg("名前を保存しました。ほかのページを開くと、反映されます。");
 });
  
+// ▼ 学習記録が、正しい形のものだけを残す
+function validLogs(arr) {
+  return arr.filter(function (l) {
+    return (
+      l &&
+      typeof l.date === "string" &&
+      typeof l.cat === "string" &&
+      Number.isFinite(l.min) &&
+      l.min >= 1
+    );
+  });
+}
+ 
 // ▼ データを、ファイルに書き出す
 exportBtn.addEventListener("click", function () {
   const data = {
+    version: 2,                       // バックアップの形式の番号
     tasks: tasks,
     memos: memos,
+    logs: logs,
     userName: localStorage.getItem("userName") || "",
     exportedAt: new Date().toISOString()
   };
@@ -39,7 +88,13 @@ exportBtn.addEventListener("click", function () {
   a.click();
   URL.revokeObjectURL(url);
  
-  showMsg("書き出しました。ダウンロードフォルダを確認してください。");
+  localStorage.setItem("lastExport", data.exportedAt); // ★追加：書き出した日時を覚える
+  renderSummary();                                      // ★追加
+ 
+  showMsg(
+    "書き出しました。（タスク " + tasks.length + " 件、メモ " + memos.length +
+    " 件、学習記録 " + logs.length + " 件）"
+  );
 });
  
 // ▼ ファイルから、データを読み込む
@@ -55,17 +110,42 @@ importFile.addEventListener("change", function () {
       if (!Array.isArray(data.tasks) || !Array.isArray(data.memos)) {
         throw new Error("形式が違います");
       }
-      if (!confirm("今のデータを、読み込んだデータで置き換えます。よろしいですか？")) return;
+ 
+      // ★追加：ファイルの中身の件数を、確認画面に出す
+      const hasLogs = Array.isArray(data.logs);
+      const fileLogs = hasLogs ? validLogs(data.logs) : [];
+      const ok = confirm(
+        "このファイルには、次のデータが入っています。\n" +
+        "・タスク " + data.tasks.length + " 件\n" +
+        "・メモ " + data.memos.length + " 件\n" +
+        "・学習記録 " + (hasLogs ? fileLogs.length + " 件" : "なし") + "\n\n" +
+        "今のデータを、これで置き換えます。よろしいですか？"
+      );
+      if (!ok) return;
  
       tasks = data.tasks;
       memos = data.memos;
       save();
       saveMemos();
+ 
+      // 学習記録は、古いバックアップには入っていない。ある場合だけ、置き換える
+      if (hasLogs) {
+        logs = fileLogs;
+        saveLogs();
+      }
+ 
       if (typeof data.userName === "string") {
         localStorage.setItem("userName", data.userName);
         nameInput.value = data.userName;
       }
-      showMsg("読み込みました。（タスク " + tasks.length + " 件、メモ " + memos.length + " 件）");
+ 
+      renderSummary(); // ★追加
+ 
+      let text = "読み込みました。（タスク " + tasks.length + " 件、メモ " + memos.length + " 件";
+      text += hasLogs
+        ? "、学習記録 " + logs.length + " 件）"
+        : "。学習記録は、このファイルに入っていないため、そのままです）";
+      showMsg(text);
     } catch (e) {
       showMsg("読み込めませんでした。書き出したバックアップのファイルか、確認してください。");
     }
@@ -79,6 +159,7 @@ clearTasksBtn.addEventListener("click", function () {
   if (!confirm("タスクを全部削除します。よろしいですか？")) return;
   tasks = [];
   save();
+  renderSummary(); // ★追加
   showMsg("タスクを削除しました。");
 });
  
@@ -86,22 +167,25 @@ clearMemosBtn.addEventListener("click", function () {
   if (!confirm("メモを全部削除します。よろしいですか？")) return;
   memos = [];
   saveMemos();
+  renderSummary(); // ★追加
   showMsg("メモを削除しました。");
 });
  
 clearAllBtn.addEventListener("click", function () {
-  if (!confirm("タスク、メモ、名前をすべて削除します。よろしいですか？")) return;
+  if (!confirm("タスク、メモ、学習記録、名前をすべて削除します。よろしいですか？")) return;
   tasks = [];
   memos = [];
+  logs = [];
   save();
   saveMemos();
+  saveLogs();
   localStorage.removeItem("userName");
   nameInput.value = "";
+  renderSummary(); // ★追加
   showMsg("すべて削除しました。");
 });
-
+ 
 // ▼ カレンダー用ファイル（.ics）の書き出し
-const icsBtn = document.getElementById("icsBtn");
  
 // 文字の中の特別な記号を、.ics の決まりに合わせて変える
 function icsEscape(s) {
@@ -133,9 +217,9 @@ icsBtn.addEventListener("click", function () {
     const day = t.due.replace(/-/g, ""); // 2026-11-20 → 20261120
     lines.push(
       "BEGIN:VEVENT",
-      "UID:" + t.id + "@gakutask",                 // タスクごとの、重ならない番号
+      "UID:" + t.id + "@gakutask",
       "DTSTAMP:" + icsStamp(),
-      "DTSTART;VALUE=DATE:" + day,                 // 終日の予定
+      "DTSTART;VALUE=DATE:" + day,
       "SUMMARY:" + icsEscape(t.text),
       "DESCRIPTION:" + icsEscape((t.cat || "その他") + "・優先度：" + (t.priority || "中")),
  
@@ -171,3 +255,5 @@ icsBtn.addEventListener("click", function () {
  
   showMsg(items.length + " 件のタスクを書き出しました。カレンダーアプリで開いてください。");
 });
+ 
+renderSummary(); // ★追加：ページを開いたときに、件数を表示する

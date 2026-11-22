@@ -405,6 +405,11 @@ li.done span { text-decoration: line-through; }
   font-size: 18px;
 }
 
+/* ▼ 保存されているデータの件数 */
+.data-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; margin-bottom: 8px; }
+.data-grid div { background: var(--bg1); border: 1px solid var(--line); border-radius: 12px; padding: 8px 12px; }
+.data-grid small { display: block; color: var(--sub); font-size: 12px; }
+.data-grid b { font-size: 20px; }
 
 /* ▼ 広い画面（900px以上）では、タブを左のサイドバーにする */
 @media (min-width: 900px) {

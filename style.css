@@ -411,6 +411,45 @@ li.done span { text-decoration: line-through; }
 .data-grid small { display: block; color: var(--sub); font-size: 12px; }
 .data-grid b { font-size: 20px; }
 
+
+/* ▼ タスクの編集 */
+.edit { background: none; color: var(--accent); padding: 4px 10px; font-size: 14px; }
+.edit:hover { filter: none; text-decoration: underline; }
+ 
+li.editing { flex-direction: column; align-items: stretch; gap: 8px; }
+li.editing:hover { transform: none; }          /* 編集中は、浮かないようにする */
+ 
+.edit-text {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--card);
+  color: var(--ink);
+  font-size: 16px;
+}
+.edit-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.edit-row select,
+.edit-row input {
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--card);
+  color: var(--ink);
+  font-size: 14px;
+}
+.edit-actions { display: flex; gap: 8px; }
+.edit-actions button { padding: 8px 16px; font-size: 14px; }
+ 
+.edit-text:focus,
+.edit-row select:focus,
+.edit-row input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--soft);
+}
+
+
 /* ▼ 広い画面（900px以上）では、タブを左のサイドバーにする */
 @media (min-width: 900px) {
  

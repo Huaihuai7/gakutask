@@ -48,6 +48,25 @@ let lastDeleted = null;
 // ▼ いま編集中のタスクの id（編集していなければ null）
 let editingId = null;
  
+// ★追加：期限の「次の日付」を計算する（例：2026-11-23 と weekly → 2026-11-30）
+function nextDue(dueStr, repeat) {
+const p = dueStr.split("-");
+const y = Number(p[0]);
+const m = Number(p[1]) - 1; // 月は 0 から数える（0=1月）
+const d = Number(p[2]);
+let date;
+if (repeat === "daily") {
+date = new Date(y, m, d + 1);
+} else if (repeat === "weekly") {
+date = new Date(y, m, d + 7);
+} else {
+// 毎月：来月の同じ日。ただし来月にその日が無ければ、月末にする
+const lastDay = new Date(y, m + 2, 0).getDate();
+date = new Date(y, m + 1, Math.min(d, lastDay));
+}
+return dateKey(date); // dateKey は common.js にある関数
+}
+ 
 // ★追加：検索と絞り込みの条件に、合うタスクか調べる
 function matchesFilter(task) {
   const q = searchInput.value.trim().toLowerCase();
@@ -190,10 +209,27 @@ function render() {
     check.type = "checkbox";
     check.checked = task.done;
     check.addEventListener("change", function () {
-      task.done = check.checked;
-      save();
-      render();
+    task.done = check.checked;
+ 
+    // ★追加：繰り返しタスクを完了したら、次の分を作る
+    if (task.done && task.repeat && task.due && !task.spawned) {
+    tasks.push({
+    id: Date.now(),
+    text: task.text,
+    done: false,
+    due: nextDue(task.due, task.repeat),
+    priority: task.priority,
+    cat: task.cat,
+    category: task.category,
+    repeat: task.repeat
     });
+    task.spawned = true; // 「次の分は作った」という印
+    }
+
+    save();
+    render();
+  });
+ 
  
     // タスクの文字
     const title = document.createElement("span");

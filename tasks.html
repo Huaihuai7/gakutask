@@ -32,6 +32,15 @@
     </select>
   </div>
  
+
+   <!-- ▼ 検索と絞り込み -->
+  <div class="filter">
+    <input id="searchInput" type="search" placeholder="タスクを検索" aria-label="タスクを検索">
+    <select id="filterCategory" aria-label="カテゴリで絞り込む"></select>
+    <button id="clearFilter" class="btn-sub">クリア</button>
+  </div>
+  <p id="resultInfo" class="set-note"></p>
+  
   <ul id="taskList"></ul>
  
   <div id="undoBar" class="undo" hidden>

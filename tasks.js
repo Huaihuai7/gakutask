@@ -9,6 +9,10 @@ const categoryInput = document.getElementById("categoryInput");
 const undoBar = document.getElementById("undoBar");
 const undoBtn = document.getElementById("undoBtn");
 const undoClose = document.getElementById("undoClose");
+const searchInput = document.getElementById("searchInput");       // ★追加
+const filterCategory = document.getElementById("filterCategory"); // ★追加
+const clearFilter = document.getElementById("clearFilter");       // ★追加
+const resultInfo = document.getElementById("resultInfo");         // ★追加
  
 // ▼ カテゴリの選択肢を、CATEGORIES から作る
 CATEGORIES.forEach(function (name) {
@@ -18,17 +22,59 @@ CATEGORIES.forEach(function (name) {
   categoryInput.appendChild(opt);
 });
  
+// ★追加：絞り込み用の選択肢（すべて／各カテゴリ／未設定）を作る
+(function () {
+  function add(value, text) {
+    const opt = document.createElement("option");
+    opt.value = value;
+    opt.textContent = text;
+    filterCategory.appendChild(opt);
+  }
+  add("", "すべてのカテゴリ");
+  CATEGORIES.forEach(function (name) {
+    add(name, name);
+  });
+  add("__none__", "未設定"); // カテゴリが入っていない、古いタスク用
+})();
+ 
 // ▼ 直前に削除したタスクを、覚えておく
 let lastDeleted = null;
  
-// ★追加：いま編集中のタスクの id（編集していなければ null）
+// ▼ いま編集中のタスクの id（編集していなければ null）
 let editingId = null;
  
-// ★追加：選択欄を作る小さな関数
-//   list      : 選択肢の文字の配列
-//   value     : 最初に選んでおく値
-//   label     : 画面を読み上げるソフト用の名前
-//   blankText : 「何も選んでいない」という選択肢が必要なときの文字（不要なら null）
+// ★追加：検索と絞り込みの条件に、合うタスクか調べる
+function matchesFilter(task) {
+  const q = searchInput.value.trim().toLowerCase();
+  const fc = filterCategory.value;
+ 
+  // 検索：やること・科目・カテゴリのどれかに、文字が含まれているか
+  if (q !== "") {
+    const hay = (task.text + " " + (task.cat || "") + " " + (task.category || "")).toLowerCase();
+    if (!hay.includes(q)) return false;
+  }
+ 
+  // カテゴリの絞り込み
+  if (fc === "__none__") return !task.category;
+  if (fc !== "") return task.category === fc;
+  return true;
+}
+ 
+// ★追加：件数のメッセージを出す
+function updateInfo(shown) {
+  const total = tasks.length;
+  if (total === 0) {
+    resultInfo.textContent = "まだタスクがありません。";
+  } else if (shown === 0) {
+    resultInfo.textContent = "条件に合うタスクがありません。（全 " + total + " 件）";
+  } else if (shown === total) {
+    resultInfo.textContent = "全 " + total + " 件";
+  } else {
+    resultInfo.textContent = total + " 件中 " + shown + " 件を表示";
+  }
+}
+ 
+// ▼ 選択欄を作る小さな関数
 function makeSelect(list, value, label, blankText) {
   const sel = document.createElement("select");
   sel.setAttribute("aria-label", label);
@@ -48,20 +94,18 @@ function makeSelect(list, value, label, blankText) {
   return sel;
 }
  
-// ★追加：編集用のカード（<li>）を作る
+// ▼ 編集用のカード（<li>）を作る
 function buildEditItem(task) {
   const li = document.createElement("li");
   li.className = "editing";
   li.dataset.cat = task.cat || "その他";
  
-  // やることの文字
   const textIn = document.createElement("input");
   textIn.type = "text";
   textIn.className = "edit-text";
   textIn.value = task.text;
   textIn.setAttribute("aria-label", "やること");
  
-  // カテゴリ・科目・優先度・期限
   const catSel = makeSelect(CATEGORIES, task.category || "", "カテゴリ", task.category ? null : "未設定");
   const subSel = makeSelect(CATS, task.cat || "その他", "科目", null);
   const priSel = makeSelect(["高", "中", "低"], task.priority || "中", "優先度", null);
@@ -74,7 +118,6 @@ function buildEditItem(task) {
   row.className = "edit-row";
   row.append(catSel, subSel, priSel, dueIn);
  
-  // 保存とキャンセル
   const saveBtn = document.createElement("button");
   saveBtn.textContent = "保存";
   const cancelBtn = document.createElement("button");
@@ -85,15 +128,14 @@ function buildEditItem(task) {
   actions.className = "edit-actions";
   actions.append(saveBtn, cancelBtn);
  
-  // 保存：入力した内容を、タスクに書き込む
   function commit() {
     const t = textIn.value.trim();
-    if (t === "") {          // 空のままでは、保存しない
+    if (t === "") {
       textIn.focus();
       return;
     }
     task.text = t;
-    task.category = catSel.value || undefined; // 未設定のときは、項目ごと消える
+    task.category = catSel.value || undefined;
     task.cat = subSel.value;
     task.priority = priSel.value;
     task.due = dueIn.value;
@@ -102,7 +144,6 @@ function buildEditItem(task) {
     render();
   }
  
-  // キャンセル：何も変えずに、元の表示に戻す
   function cancel() {
     editingId = null;
     render();
@@ -111,7 +152,6 @@ function buildEditItem(task) {
   saveBtn.addEventListener("click", commit);
   cancelBtn.addEventListener("click", cancel);
  
-  // キーボード：Enterで保存、Escで取り消し
   textIn.addEventListener("keydown", function (e) {
     if (e.key === "Enter") commit();
     if (e.key === "Escape") cancel();
@@ -125,8 +165,12 @@ function buildEditItem(task) {
 function render() {
   list.innerHTML = "";
  
-  sortedTasks().forEach(function (task) {
-    // ★追加：編集中のタスクは、編集用のカードを出す
+  // ★変更：絞り込みに合うタスクだけを、並び順どおりに取り出す
+  const visible = sortedTasks().filter(matchesFilter);
+  updateInfo(visible.length); // ★追加
+ 
+  visible.forEach(function (task) {
+    // 編集中のタスクは、編集用のカードを出す
     if (task.id === editingId) {
       list.appendChild(buildEditItem(task));
       return;
@@ -162,7 +206,7 @@ function render() {
     info.className = "info";
     info.append(title, meta);
  
-    // ★追加：編集ボタン
+    // 編集ボタン
     const edit = document.createElement("button");
     edit.textContent = "編集";
     edit.className = "edit";
@@ -186,14 +230,32 @@ function render() {
       undoBar.hidden = false;
     });
  
-    li.append(check, info, edit, del); // ★変更：editを追加
+    li.append(check, info, edit, del);
     list.appendChild(li);
   });
  
-  // ★追加：編集中なら、文字の欄に、カーソルを合わせる
+  // 編集中なら、文字の欄に、カーソルを合わせる
   const focusTarget = list.querySelector(".edit-text");
   if (focusTarget) focusTarget.focus();
 }
+ 
+// ★追加：検索欄に文字を入れるたび、絞り込みを変えたときに、描き直す
+searchInput.addEventListener("input", function () {
+  editingId = null; // 編集中のカードは、閉じる（入力欄の取り合いを防ぐ）
+  render();
+});
+filterCategory.addEventListener("change", function () {
+  editingId = null;
+  render();
+});
+ 
+// ★追加：「クリア」で、条件を元に戻す
+clearFilter.addEventListener("click", function () {
+  searchInput.value = "";
+  filterCategory.value = "";
+  editingId = null;
+  render();
+});
  
 // ▼ 追加ボタンが押されたとき
 button.addEventListener("click", function () {

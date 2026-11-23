@@ -9,10 +9,15 @@ const categoryInput = document.getElementById("categoryInput");
 const undoBar = document.getElementById("undoBar");
 const undoBtn = document.getElementById("undoBtn");
 const undoClose = document.getElementById("undoClose");
-const searchInput = document.getElementById("searchInput");       // ★追加
-const filterCategory = document.getElementById("filterCategory"); // ★追加
-const clearFilter = document.getElementById("clearFilter");       // ★追加
-const resultInfo = document.getElementById("resultInfo");         // ★追加
+const searchInput = document.getElementById("searchInput");       
+const filterCategory = document.getElementById("filterCategory"); 
+const clearFilter = document.getElementById("clearFilter");       
+const resultInfo = document.getElementById("resultInfo");         // ★const resultInfo = document.getElementById("resultInfo"); 
+ 
+// 繰り返しの選択欄と、画面に出す名前の表
+const repeatInput = document.getElementById("repeatInput");
+const REPEAT_LABEL = { daily: "毎日", weekly: "毎週", monthly: "毎月" };
+ 
  
 // ▼ カテゴリの選択肢を、CATEGORIES から作る
 CATEGORIES.forEach(function (name) {
@@ -200,7 +205,8 @@ function render() {
       (task.category || "未設定") +
       "・" + (task.cat || "その他") +
       "・優先度：" + (task.priority || "中") +
-      (task.due ? "・期限 " + task.due : "");
+      (task.due ? "・期限 " + task.due : "") +
+      (task.repeat ? "・" + REPEAT_LABEL[task.repeat] : "");
  
     const info = document.createElement("div");
     info.className = "info";
@@ -268,14 +274,16 @@ button.addEventListener("click", function () {
     done: false,
     due: dueInput.value,
     priority: priorityInput.value,
-    cat: catInput.value,
-    category: categoryInput.value
+   cat: catInput.value,
+  category: categoryInput.value,
+  repeat: repeatInput.value
   });
   save();
   render();
  
   input.value = "";
   dueInput.value = "";
+  repeatInput.value = "";
 });
  
 // ▼ 「元に戻す」が押されたとき

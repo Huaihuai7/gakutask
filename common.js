@@ -124,3 +124,13 @@ function fmtMin(m) {
 
 // ▼ タスクのカテゴリ一覧（企画書で決めた6つ）
 const CATEGORIES = ["授業", "課題", "資格", "仕事", "自己研鑽", "就活"];
+
+// ▼ カレンダーの予定（試験日など）。タスクとは別の箱に保存する
+let calEvents = JSON.parse(localStorage.getItem("calEvents")) || [];
+ 
+function saveCalEvents() {
+localStorage.setItem("calEvents", JSON.stringify(calEvents));
+}
+ 
+// ▼ 予定の種類
+const EVENT_KINDS = ["試験", "予定", "その他"];

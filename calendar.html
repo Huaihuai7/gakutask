@@ -30,6 +30,20 @@
 <h2 id="dayTitle"></h2>
 <ul id="dayList"></ul>
  
+<!-- ▼ 選んだ日の予定 -->
+<h2 id="evDayTitle"></h2>
+<ul id="evDayList"></ul>
+ 
+<!-- ▼ 予定を追加 -->
+<h2>予定を追加</h2>
+<div class="options">
+<input id="evTitle" placeholder="予定の名前（例：ITパスポート試験）">
+<select id="evKind" aria-label="予定の種類"></select>
+<input type="date" id="evDate" aria-label="日付">
+<button id="evAddBtn">追加</button>
+</div>
+<p id="evMsg" class="set-msg" role="status"></p>
+
 <nav class="tabbar">
 <a href="index.html" class="tab">
 <svg viewBox="0 0 24 24" aria-hidden="true">

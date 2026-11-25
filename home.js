@@ -10,7 +10,7 @@ const logBtn = document.getElementById("logBtn");
 const logMsg = document.getElementById("logMsg");
 const todayList = document.getElementById("todayList");
 const latestMemo = document.getElementById("latestMemo");
-const upcomingList = document.getElementById("upcomingList"); // ★追加
+const upcomingList = document.getElementById("upcomingList");
  
 // ▼ 集計（総タスク数・完了数・進捗率）を表示する
 function updateSummary() {
@@ -103,12 +103,39 @@ latestMemo.appendChild(li);
 });
 }
  
-// ★追加：明日以降が期限で、まだ終わっていないタスクを、近い順に5件まで表示する
+// ▼ 明日以降の、未完了タスクと予定を、近い順に5件まで表示する
 function updateUpcoming() {
 const key = dateKey(new Date()); // 今日
-const items = sortedTasks()
+ 
+// タスクを、{日付, 表示する文字} の形にそろえる
+const taskItems = tasks
 .filter(function (t) {
-return !t.done && t.due && t.due > key; // 期限があって、今日より後
+return !t.done && t.due && t.due > key;
+})
+.map(function (t) {
+return {
+date: t.due,
+text: t.text + "（" + (t.cat || "その他") + "）"
+};
+});
+ 
+// 予定も、同じ形にそろえる（頭に【種類】を付ける）
+const eventItems = calEvents
+.filter(function (e) {
+return e.date > key;
+})
+.map(function (e) {
+return {
+date: e.date,
+text: "【" + e.kind + "】" + e.title
+};
+});
+ 
+// 合わせて、日付の近い順に並べて、5件まで取る
+const items = taskItems
+.concat(eventItems)
+.sort(function (a, b) {
+return a.date < b.date ? -1 : a.date > b.date ? 1 : 0;
 })
 .slice(0, 5);
  
@@ -122,9 +149,9 @@ upcomingList.appendChild(li);
 return;
 }
  
-items.forEach(function (t) {
+items.forEach(function (item) {
 const li = document.createElement("li");
-li.textContent = t.due + "　" + t.text + "（" + (t.cat || "その他") + "）";
+li.textContent = item.date + "　" + item.text;
 upcomingList.appendChild(li);
 });
 }
@@ -156,4 +183,4 @@ updateSummary();
 updateBars();
 updateToday();
 updateMemo();
-updateUpcoming(); // ★追加
+updateUpcoming();
